@@ -68,9 +68,9 @@ router.post('/whitelist', async (req, res) => {
         // If user exists, add the role
         const newRoles = new Set(existingUser.roles)
         newRoles.add(role)
-        // If adding Trader, maybe remove Whitelist if we want mutual exclusivity? 
+        // If adding Trader or Creator, maybe remove Whitelist if we want mutual exclusivity? 
         // But for now let's just add. The login logic will handle not re-adding Whitelist if Trader exists.
-        if (role === 'Trader' && newRoles.has('Whitelist')) {
+        if ((role === 'Trader' || role === 'Creator') && newRoles.has('Whitelist')) {
             newRoles.delete('Whitelist')
         }
         
