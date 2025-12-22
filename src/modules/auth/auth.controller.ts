@@ -156,6 +156,8 @@ router.post('/login', async (req, res) => {
     
     // Determine roles to ensure are present
     const rolesToEnsure = new Set<string>(['User'])
+    // Only add Whitelist role if user doesn't have Trader role
+    // We'll check user roles later if user exists, but for now we set default intent
     if (wl) rolesToEnsure.add('Whitelist')
     if (email === 'doubled@2d.com') rolesToEnsure.add('Developer')
     
@@ -186,6 +188,12 @@ router.post('/login', async (req, res) => {
       } else {
         // Ensure required roles are present
         const currentRoles = new Set(user.roles)
+        
+        // If user has Trader role, don't enforce Whitelist role
+        if (currentRoles.has('Trader')) {
+          rolesToEnsure.delete('Whitelist')
+        }
+
         let changed = false
         rolesToEnsure.forEach(r => {
             if (!currentRoles.has(r)) {
@@ -241,7 +249,7 @@ router.post('/login', async (req, res) => {
         name: user.name, 
         avatarUrl: user.avatarUrl,
         roles: user.roles,
-        profileTag: user.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r)) ? user.profileTag : undefined,
+        profileTag: user.roles.some((r: string) => ['Whitelist', 'Developer', 'Trader', 'Creator'].includes(r)) ? user.profileTag : undefined,
         verified: !!wl
       } 
     })
@@ -269,7 +277,7 @@ router.get('/me', async (req, res) => {
       name: user.name, 
       avatarUrl: user.avatarUrl, 
       roles: user.roles, 
-      profileTag: user.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r)) ? user.profileTag : undefined, 
+      profileTag: user.roles.some((r: string) => ['Whitelist', 'Developer', 'Trader', 'Creator'].includes(r)) ? user.profileTag : undefined, 
       verified: !!wl
     })
   } catch (e) {
@@ -290,7 +298,7 @@ router.patch('/me', async (req, res) => {
     const { isPublic, name, avatarUrl, profileTag } = req.body
     const data: any = {}
     
-    const isPrivileged = user.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r))
+    const isPrivileged = user.roles.some((r: string) => ['Whitelist', 'Developer', 'Creator'].includes(r))
     
     if (isPrivileged && typeof isPublic === 'boolean') data.isPublic = isPublic
     if (typeof name === 'string') data.name = name
@@ -351,7 +359,7 @@ router.patch('/me', async (req, res) => {
       isPublic: updated.isPublic, 
       name: updated.name, 
       avatarUrl: updated.avatarUrl, 
-      profileTag: updated.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r)) ? updated.profileTag : undefined, 
+      profileTag: updated.roles.some((r: string) => ['Whitelist', 'Developer', 'Trader'].includes(r)) ? updated.profileTag : undefined, 
       roles: updated.roles,
       verified: !!wl 
     })

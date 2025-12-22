@@ -73,7 +73,7 @@ router.get('/journal/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
     
-    const isPrivileged = requesterRoles.some(r => ['Whitelist', 'Developer'].includes(r))
+    const isPrivileged = requesterRoles.some(r => ['Whitelist', 'Developer', 'Trader'].includes(r))
     if (!user.isPublic && !isPrivileged) {
       return res.status(403).json({ error: 'Journal is private' })
     }
@@ -132,7 +132,7 @@ router.get('/wallet/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
     
-    if (!user.isPublic && !requesterRoles.some(r => ['Whitelist', 'Developer'].includes(r))) {
+    if (!user.isPublic && !requesterRoles.some(r => ['Whitelist', 'Developer', 'Trader'].includes(r))) {
       return res.status(403).json({ error: 'Journal is private' })
     }
 

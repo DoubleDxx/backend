@@ -32,6 +32,7 @@ router.post('/whitelist', async (req, res) => {
     const rawEmail = (req.body?.email ?? '') as string
     const email = rawEmail.trim().toLowerCase()
     const password = (req.body?.password ?? '') as string
+    const role = (req.body?.role ?? 'Whitelist') as string
 
     if (!email || !password) return res.status(400).json({ error: 'missing_fields' })
     if (password.length < 6) return res.status(400).json({ error: 'password_too_short' })
@@ -40,10 +41,9 @@ router.post('/whitelist', async (req, res) => {
     const existing = await prisma.whitelist.findUnique({ where: { email } })
     if (existing) return res.status(400).json({ error: 'already_whitelisted' })
 
-    // Check if exists in users to potentially upgrade role? 
-    // For now, just add to whitelist. The login logic handles the role upgrade.
-
     const hash = await bcrypt.hash(password, 10)
+    
+    // Add to Whitelist table (gatekeeper)
     await prisma.whitelist.create({
       data: {
         email,
@@ -51,6 +51,34 @@ router.post('/whitelist', async (req, res) => {
         createdAt: new Date()
       }
     })
+
+    // Also ensure User record exists with correct role
+    const existingUser = await prisma.user.findUnique({ where: { email } })
+    if (!existingUser) {
+        await prisma.user.create({
+            data: {
+                email,
+                passwordHash: hash,
+                isPublic: true,
+                roles: ['User', role],
+                createdAt: new Date()
+            }
+        })
+    } else {
+        // If user exists, add the role
+        const newRoles = new Set(existingUser.roles)
+        newRoles.add(role)
+        // If adding Trader, maybe remove Whitelist if we want mutual exclusivity? 
+        // But for now let's just add. The login logic will handle not re-adding Whitelist if Trader exists.
+        if (role === 'Trader' && newRoles.has('Whitelist')) {
+            newRoles.delete('Whitelist')
+        }
+        
+        await prisma.user.update({
+            where: { email },
+            data: { roles: Array.from(newRoles) }
+        })
+    }
 
     res.json({ ok: true })
   } catch (e) {

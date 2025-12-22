@@ -15,7 +15,7 @@ router.use((req, res, next) => {
   const authReq = req as AuthRequest
   // Allow 'User' role (or others) to access trade endpoints
   const roles = authReq.user?.roles || ['User']
-  const allowed = ['Whitelist', 'Developer', 'User']
+  const allowed = ['Whitelist', 'Developer', 'User', 'Trader', 'Creator']
   const hasRole = roles.some((r: string) => allowed.includes(r))
   
   if (!authReq.user || !hasRole) {
