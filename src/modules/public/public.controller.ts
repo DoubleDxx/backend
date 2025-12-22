@@ -4,19 +4,19 @@ import { prisma } from '../../lib/prisma'
 
 const router = Router()
 
-async function getRequesterRole(req: any): Promise<'Whitelist' | 'User' | 'Developer' | 'anonymous'> {
+async function getRequesterRole(req: any): Promise<string[]> {
   try {
     const auth = req.headers?.authorization || ''
     const token = auth.replace(/^Bearer\s+/i, '')
-    if (!token) return 'anonymous'
+    if (!token) return []
     const secret = process.env.JWT_SECRET || 'dev-secret'
     const payload = jwt.verify(token, secret) as any
     const user = await prisma.user.findUnique({ where: { id: payload?.uid } })
     if (user) {
-        return (user.role as 'Whitelist' | 'User' | 'Developer') || 'User'
+        return user.roles|| ['User']
     }
-    return 'anonymous'
-  } catch { return 'anonymous' }
+    return []
+  } catch { return [] }
 }
 
 router.get('/users', async (req, res) => {
@@ -48,7 +48,7 @@ router.get('/users', async (req, res) => {
         name: u.name || u.email,
         email: u.email,
         avatarUrl: u.avatarUrl,
-        role: u.role,
+        roles: u.roles,
         isPublic: !!u.isPublic,
         isVerified: verifiedEmails.has(u.email)
     }))
@@ -67,13 +67,14 @@ router.get('/journal/:userId', async (req, res) => {
   try {
     const { userId } = req.params
     const user = await prisma.user.findUnique({ where: { id: userId } })
-    const role = await getRequesterRole(req)
+    const requesterRoles = await getRequesterRole(req)
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
     }
     
-    if (!user.isPublic && !['Whitelist', 'Developer'].includes(role)) {
+    const isPrivileged = requesterRoles.some(r => ['Whitelist', 'Developer'].includes(r))
+    if (!user.isPublic && !isPrivileged) {
       return res.status(403).json({ error: 'Journal is private' })
     }
 
@@ -125,13 +126,13 @@ router.get('/wallet/:userId', async (req, res) => {
   try {
     const { userId } = req.params
     const user = await prisma.user.findUnique({ where: { id: userId } })
-    const role = await getRequesterRole(req)
+    const requesterRoles = await getRequesterRole(req)
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
     }
     
-    if (!user.isPublic && !['Whitelist', 'Developer'].includes(role)) {
+    if (!user.isPublic && !requesterRoles.some(r => ['Whitelist', 'Developer'].includes(r))) {
       return res.status(403).json({ error: 'Journal is private' })
     }
 

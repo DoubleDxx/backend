@@ -67,12 +67,12 @@ router.post('/register', async (req, res) => {
     
     // Create new user
     const hash = await bcrypt.hash(password, 10)
-    const role = email === 'doubled@2d.com' ? 'Developer' : 'User'
+    const roles = email === 'doubled@2d.com' ? ['Developer', 'User'] : ['User']
     const user = await prisma.user.create({
       data: { 
         email, 
         passwordHash: hash, 
-        role, 
+        roles, 
         createdAt: new Date() 
       }
     })
@@ -86,7 +86,7 @@ router.post('/register', async (req, res) => {
         isPublic: user.isPublic, 
         name: user.name, 
         avatarUrl: user.avatarUrl,
-        role: user.role,
+        roles: user.roles,
         verified: false
       } 
     })
@@ -153,8 +153,11 @@ router.post('/login', async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: 'missing_credentials' })
     
     const wl = await prisma.whitelist.findUnique({ where: { email } })
-    let targetRole = wl ? 'Whitelist' : 'User'
-    if (email === 'doubled@2d.com') targetRole = 'Developer'
+    
+    // Determine roles to ensure are present
+    const rolesToEnsure = new Set<string>(['User'])
+    if (wl) rolesToEnsure.add('Whitelist')
+    if (email === 'doubled@2d.com') rolesToEnsure.add('Developer')
     
     let user = await prisma.user.findUnique({ where: { email } })
     
@@ -176,15 +179,25 @@ router.post('/login', async (req, res) => {
             email, 
             passwordHash: hash, 
             isPublic: true, 
-            role: targetRole, 
+            roles: Array.from(rolesToEnsure), 
             createdAt: new Date() 
           }
         })
       } else {
-        if (user.role !== targetRole) {
+        // Ensure required roles are present
+        const currentRoles = new Set(user.roles)
+        let changed = false
+        rolesToEnsure.forEach(r => {
+            if (!currentRoles.has(r)) {
+                currentRoles.add(r)
+                changed = true
+            }
+        })
+        
+        if (changed) {
           user = await prisma.user.update({
             where: { id: user.id },
-            data: { role: targetRole }
+            data: { roles: Array.from(currentRoles) }
           })
         }
       }
@@ -207,10 +220,12 @@ router.post('/login', async (req, res) => {
           })
         }
         
-        if (user.role !== 'User' && user.role !== 'Developer' && !wl) {
+        // Ensure User role exists
+        if (!user.roles.includes('User')) {
+           const newRoles = Array.from(new Set([...user.roles, 'User']))
            user = await prisma.user.update({
              where: { id: user.id },
-             data: { role: 'User' }
+             data: { roles: newRoles }
            })
         }
       }
@@ -225,13 +240,13 @@ router.post('/login', async (req, res) => {
         isPublic: user.isPublic, 
         name: user.name, 
         avatarUrl: user.avatarUrl,
-        role: user.role,
-        profileTag: ['Whitelist', 'Developer'].includes(user.role) ? user.profileTag : undefined,
-        verified: !!wl || user.role === 'Developer'
+        roles: user.roles,
+        profileTag: user.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r)) ? user.profileTag : undefined,
+        verified: !!wl
       } 
     })
   } catch (e) {
-    console.error(e)
+    console.error('Login error:', e)
     res.status(500).json({ error: 'login_failed' })
   }
 })
@@ -253,9 +268,9 @@ router.get('/me', async (req, res) => {
       isPublic: user.isPublic, 
       name: user.name, 
       avatarUrl: user.avatarUrl, 
-      role: user.role, 
-      profileTag: ['Whitelist', 'Developer'].includes(user.role) ? user.profileTag : undefined, 
-      verified: !!wl || user.role === 'Developer' 
+      roles: user.roles, 
+      profileTag: user.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r)) ? user.profileTag : undefined, 
+      verified: !!wl
     })
   } catch (e) {
     console.error('Auth check error:', e)
@@ -275,7 +290,7 @@ router.patch('/me', async (req, res) => {
     const { isPublic, name, avatarUrl, profileTag } = req.body
     const data: any = {}
     
-    const isPrivileged = ['Whitelist', 'Developer'].includes(user.role)
+    const isPrivileged = user.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r))
     
     if (isPrivileged && typeof isPublic === 'boolean') data.isPublic = isPublic
     if (typeof name === 'string') data.name = name
@@ -336,9 +351,9 @@ router.patch('/me', async (req, res) => {
       isPublic: updated.isPublic, 
       name: updated.name, 
       avatarUrl: updated.avatarUrl, 
-      profileTag: ['Whitelist', 'Developer'].includes(updated.role) ? updated.profileTag : undefined, 
-      role: updated.role, 
-      verified: !!wl || updated.role === 'Developer' 
+      profileTag: updated.roles.some((r: string) => ['Whitelist', 'Developer'].includes(r)) ? updated.profileTag : undefined, 
+      roles: updated.roles,
+      verified: !!wl 
     })
   } catch (e) {
     console.error('Profile update error:', e)

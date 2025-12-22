@@ -25,8 +25,11 @@ async function ensureUser(req: any) {
 
 function ensureEditorOr403(req: any, res: any, user: any) {
   if (!user) { res.status(401).json({ error: 'unauthorized' }); return false }
-  const role = user.role || 'User'
-  if (!['Whitelist', 'Developer'].includes(role)) { res.status(403).json({ error: 'forbidden_user' }); return false }
+  const roles = user.roles || ['User']
+  // Allow 'User' role (or others) to perform wallet operations
+  const allowed = ['Whitelist', 'Developer', 'User']
+  const hasRole = roles.some((r: string) => allowed.includes(r))
+  if (!hasRole) { res.status(403).json({ error: 'forbidden_user' }); return false }
   return true
 }
 

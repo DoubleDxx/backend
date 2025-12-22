@@ -64,7 +64,7 @@ async function main() {
         email: u.email,
         passwordHash: u.passwordHash,
         name: u.name,
-        role: 'admin',
+        roles: ['Developer'],
         isPublic: u.isPublic || false,
         profileTag: u.profileTag,
         avatarUrl: u.avatarUrl,
@@ -88,7 +88,7 @@ async function main() {
         email: v.email,
         passwordHash: v.passwordHash,
         name: v.name,
-        role: 'viewer',
+        roles: ['User'],
         avatarUrl: avatar?.url,
         createdAt: v.createdAt ? new Date(v.createdAt) : undefined
       }

@@ -27,7 +27,7 @@ router.post('/whitelist', async (req, res) => {
   try {
     const user = await ensureUser(req)
     if (!user) return res.status(401).json({ error: 'unauthorized' })
-    if (user.role !== 'Developer') return res.status(403).json({ error: 'forbidden' })
+    if (!user.roles.includes('Developer')) return res.status(403).json({ error: 'forbidden' })
 
     const rawEmail = (req.body?.email ?? '') as string
     const email = rawEmail.trim().toLowerCase()
@@ -62,7 +62,7 @@ router.post('/whitelist', async (req, res) => {
 router.delete('/users/:id', async (req, res) => {
   try {
     const user = await ensureUser(req)
-    if (!user || user.role !== 'Developer') return res.status(403).json({ error: 'forbidden' })
+    if (!user || !user.roles.includes('Developer')) return res.status(403).json({ error: 'forbidden' })
 
     const { id } = req.params
     // Prevent deleting self
@@ -79,16 +79,24 @@ router.delete('/users/:id', async (req, res) => {
 router.put('/users/:id/role', async (req, res) => {
   try {
     const user = await ensureUser(req)
-    if (!user || user.role !== 'Developer') return res.status(403).json({ error: 'forbidden' })
+    if (!user || !user.roles.includes('Developer')) return res.status(403).json({ error: 'forbidden' })
 
     const { id } = req.params
-    const { role } = req.body
+    const { role, roles } = req.body
 
-    if (!role) return res.status(400).json({ error: 'missing_role' })
+    // Support both single role and multiple roles update
+    let finalRoles: string[] = []
+    if (roles && Array.isArray(roles)) {
+      finalRoles = roles
+    } else if (role) {
+      finalRoles = [role]
+    } else {
+      return res.status(400).json({ error: 'missing_role' })
+    }
 
     await prisma.user.update({
       where: { id },
-      data: { role }
+      data: { roles: finalRoles }
     })
     res.json({ ok: true })
   } catch (e) {

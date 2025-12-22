@@ -13,7 +13,12 @@ router.use(authenticateToken)
 // Block viewer role from accessing private trade endpoints
 router.use((req, res, next) => {
   const authReq = req as AuthRequest
-  if (!authReq.user || !['Whitelist', 'Developer'].includes(authReq.user.role || '')) {
+  // Allow 'User' role (or others) to access trade endpoints
+  const roles = authReq.user?.roles || ['User']
+  const allowed = ['Whitelist', 'Developer', 'User']
+  const hasRole = roles.some((r: string) => allowed.includes(r))
+  
+  if (!authReq.user || !hasRole) {
     return res.status(403).json({ error: 'forbidden_viewer' })
   }
   next()

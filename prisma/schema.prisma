@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -12,7 +13,7 @@ model User {
   email        String   @unique
   passwordHash String?
   name         String?
-  role         String   @default("User") // "Whitelist", "User", "Developer"
+  roles        String[] @default(["User"]) // ["Whitelist", "User", "Developer"]
   isPublic     Boolean  @default(false)
   profileTag   String?
   avatarUrl    String?

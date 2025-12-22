@@ -7,7 +7,7 @@ export interface AuthRequest extends Request {
     id: string
     email: string
     isPublic: boolean
-    role?: 'Whitelist' | 'User' | 'Developer'
+    roles: string[]
   }
 }
 
@@ -29,7 +29,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       id: user.id,
       email: user.email,
       isPublic: user.isPublic,
-      role: (user.role as 'Whitelist' | 'User' | 'Developer') || 'User'
+      roles: user.roles || ['User']
     }
     next()
   } catch (err) {
