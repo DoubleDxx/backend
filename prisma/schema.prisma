@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?
+  name         String?
+  role         String   @default("User") // "Whitelist", "User", "Developer"
+  isPublic     Boolean  @default(false)
+  profileTag   String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+
+  brokers      Broker[]
+  accounts     Account[]
+  strategies   Strategy[]
+  trades       Trade[]
+  walletTxs    WalletTx[]
+  notes        Note[]
+}
+
+model Broker {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  type      String?   // "multi" etc
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts  Account[]
+}
+
+model Account {
+  id        String     @id @default(uuid())
+  userId    String
+  brokerId  String?
+  name      String
+  currency  String     @default("USD")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  broker    Broker?    @relation(fields: [brokerId], references: [id])
+  trades    Trade[]
+  walletTxs WalletTx[]
+}
+
+model Strategy {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades    Trade[]
+  notes     Note[]
+}
+
+model Trade {
+  id           String    @id @default(uuid())
+  userId       String
+  accountId    String?
+  strategyId   String?
+  symbol       String
+  market       String?   // "forex", "crypto", etc
+  direction    String    // "BUY" or "SELL"
+  lotSize      Float
+  entryPrice   Float
+  stopLoss     Float?
+  takeProfit   Float?
+  entryAt      DateTime
+  status       String    @default("OPEN") // "OPEN", "CLOSED"
+  realizedPnl  Float?
+  entryType    String?   // "MARKET", "LIMIT"
+  notes        String?
+  fees         Float?
+  commission   Float?
+  ticketId     String?
+  positionId   String?
+  riskPct      Float?
+  balanceBefore Float?
+  balanceAfter  Float?
+  
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account      Account?  @relation(fields: [accountId], references: [id])
+  strategy     Strategy? @relation(fields: [strategyId], references: [id])
+  
+  exitLegs     ExitLeg[]
+  screenshots  Screenshot[]
+}
+
+model ExitLeg {
+  id        String   @id @default(uuid())
+  tradeId   String
+  size      Float
+  exitPrice Float
+  exitAt    DateTime
+  fees      Float?
+  trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+}
+
+model Screenshot {
+  id        String   @id @default(uuid())
+  tradeId   String
+  url       String
+  trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+}
+
+model WalletTx {
+  id        String   @id @default(uuid())
+  userId    String
+  accountId String?
+  type      String   // "DEPOSIT", "WITHDRAWAL"
+  amount    Float
+  at        DateTime
+  note      String?
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account   Account? @relation(fields: [accountId], references: [id])
+}
+
+model Note {
+  id         String    @id @default(uuid())
+  userId     String
+  strategyId String?
+  date       DateTime
+  content    String
+  
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategy   Strategy? @relation(fields: [strategyId], references: [id])
+}
+
+model Whitelist {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
+}
+
+model InstrumentMeta {
+  id         String @id @default(uuid())
+  symbol     String @unique
+  pipSize    Float
+  pointValue Float?
+}

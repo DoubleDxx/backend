@@ -1,0 +1,17 @@
+[
+  {
+    "email": "test@2d.com",
+    "passwordHash": "$2b$10$WJfAoGXuIHhSvkVZF7f/rOWgB9YX02NOxad6yZNxPvFt.HeEz.1EO",
+    "role": "viewer",
+    "createdAt": "2025-12-19T08:42:48.755Z",
+    "id": "d75af76c-cb39-461f-bd45-3dcbe9ef8341",
+    "name": "Test"
+  },
+  {
+    "email": "viewer@example.com",
+    "passwordHash": "$2b$10$pCRNGJzrWfsOD1pC6C0MM.x8kvjQmM2AivqUAvaVBqmpx1BJ9I0Te",
+    "role": "viewer",
+    "createdAt": "2025-12-19T08:46:50.707Z",
+    "id": "2f82fc76-caa8-453d-9144-ccfb54acc933"
+  }
+]

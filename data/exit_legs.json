@@ -1,0 +1,66 @@
+[
+  {
+    "tradeId": "ea88e99c-9cac-48cd-9271-580c9e9eba25",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T10:07:42.993Z",
+    "fees": 0,
+    "id": "6b0605a5-b91b-4ae0-ab99-63e7c90e9149"
+  },
+  {
+    "tradeId": "085d732a-8033-4ad8-b2e6-3e5c5bee4519",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T10:31:05.862Z",
+    "fees": 0,
+    "id": "7ee23774-1c1b-4417-a684-12c20c4c2201"
+  },
+  {
+    "tradeId": "8aa38e89-5927-4f11-9c7f-96a1123da86c",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T10:38:30.388Z",
+    "fees": 0,
+    "id": "5f6c7671-5339-4a8e-8d86-76d0d5a9eb6e"
+  },
+  {
+    "tradeId": "bc079d32-5d88-4689-9ac6-bd4f5c79b3c4",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T10:46:41.119Z",
+    "fees": 0,
+    "id": "e710b1d5-5f67-426f-9347-09b72d6a9000"
+  },
+  {
+    "tradeId": "df62e92d-916a-4102-8cf4-43eb06f463bd",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T10:48:26.518Z",
+    "fees": 0,
+    "id": "9d188810-8d91-4d90-91df-6ebd368604cf"
+  },
+  {
+    "tradeId": "984b1431-f38c-4fbe-bf1b-8d9d586fa546",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T10:51:34.280Z",
+    "fees": 0,
+    "id": "b9f0b9d1-7bfb-44da-bc9f-fcb06f83f933"
+  },
+  {
+    "tradeId": "60932241-b00a-4784-b36f-809b609423e9",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T10:56:31.353Z",
+    "fees": 0,
+    "id": "140ff541-5f04-4144-952d-238aad00aadb"
+  },
+  {
+    "tradeId": "e3ce1463-ce66-40b2-a998-b687b916419e",
+    "size": 1,
+    "exitPrice": 1234,
+    "exitAt": "2025-12-19T11:05:55.977Z",
+    "fees": 0,
+    "id": "2e99c280-b951-46c7-a2ac-f85e6b50d38e"
+  }
+]

@@ -1,0 +1,182 @@
+[
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Interactive Brokers",
+    "type": "multi",
+    "id": "e3e3eae8-b33a-4282-a374-4904a4f4e0b0"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Charles Schwab",
+    "type": "multi",
+    "id": "283c6d27-66f4-4cb0-bb5d-2998f77bfe58"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "TD Ameritrade",
+    "type": "multi",
+    "id": "abdda9f7-0e71-4d02-a42f-2e05fe2a47fe"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Fidelity",
+    "type": "multi",
+    "id": "30b0a582-100f-4038-82c6-df951d83a2d9"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "E*TRADE",
+    "type": "multi",
+    "id": "0eb27b5e-6913-4a11-8813-6ec2ecea1ad8"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Robinhood",
+    "type": "multi",
+    "id": "f63ffe51-600b-4fdf-9ea4-89713759cd84"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Thinkorswim",
+    "type": "multi",
+    "id": "0347f735-0216-42fa-a148-ecc7d982e119"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Webull",
+    "type": "multi",
+    "id": "e862a6be-01e5-441e-8ed1-0c41583f706d"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Trading 212",
+    "type": "multi",
+    "id": "42f05cb0-adae-455b-9af4-4a98abeff9bd"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Saxo Bank",
+    "type": "multi",
+    "id": "c2097d2d-9568-4987-9547-88e8ace42ab1"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "IG",
+    "type": "multi",
+    "id": "a23f6793-ba8b-47d7-8d77-143ef2dbf58b"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "CMC Markets",
+    "type": "multi",
+    "id": "cb006f68-df4c-48c5-8dd6-6476f97e3df0"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Pepperstone",
+    "type": "multi",
+    "id": "a96b1a3d-357b-437b-a269-b5e465553a3f"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Oanda",
+    "type": "multi",
+    "id": "25207ede-f70c-4eb2-9f2c-f26ae8663ffb"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "FOREX.com",
+    "type": "multi",
+    "id": "f0316c59-7912-40f8-99e1-8badae49b8b9"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "XM",
+    "type": "multi",
+    "id": "1ca54cb0-e024-48c6-8cb7-88c4026fab31"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Exness",
+    "type": "multi",
+    "id": "4aeccc61-b4ed-48ed-b433-b4b47c8fa495"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Axi",
+    "type": "multi",
+    "id": "8cb32df1-8e52-4c20-ad05-dc61b8bef255"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "FXCM",
+    "type": "multi",
+    "id": "ff970563-37a9-4deb-a7c1-b9cfb9b13f05"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "XTB",
+    "type": "multi",
+    "id": "5dd7072d-6d23-44ec-8c56-809438004858"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Binance",
+    "type": "multi",
+    "id": "5bbb63a7-ab0e-4100-8652-86c5d1cb54de"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Bybit",
+    "type": "multi",
+    "id": "9873616a-2314-4e72-82cc-3c5f4558f134"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "OKX",
+    "type": "multi",
+    "id": "e53e91fa-c751-4205-8ae1-98bbfe153fbb"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Kraken",
+    "type": "multi",
+    "id": "8ec7e098-225b-42b6-a907-64b6473d3dcb"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Coinbase",
+    "type": "multi",
+    "id": "97c01c42-b452-4839-9f87-fe5b2fc0327e"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Bitstamp",
+    "type": "multi",
+    "id": "668503b0-8ee3-47d9-b532-83e1651dbc32"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Gate.io",
+    "type": "multi",
+    "id": "a04b97fb-8d44-480b-9619-7ccb9c208b03"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "KuCoin",
+    "type": "multi",
+    "id": "0d925e30-2673-4d22-9c8e-ea98b42bc100"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Bitfinex",
+    "type": "multi",
+    "id": "52b425c7-30f1-4785-846f-631fdfff3c5c"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Gemini",
+    "type": "multi",
+    "id": "83010f79-86dd-4586-9ec1-58b772213c97"
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "brokerId": "e3e3eae8-b33a-4282-a374-4904a4f4e0b0",
+    "name": "Real",
+    "currency": "USD",
+    "id": "cb46e5fc-f9b4-4a77-8d85-e5dcce8cfe9f"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "brokerId": "e3e3eae8-b33a-4282-a374-4904a4f4e0b0",
+    "name": "Demo",
+    "currency": "USD",
+    "id": "a833962b-2bd3-4372-9c9a-246c92415ca3"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "brokerId": "4aeccc61-b4ed-48ed-b433-b4b47c8fa495",
+    "name": "Demo",
+    "currency": "USD",
+    "id": "ebdb9b5a-a60f-455b-a4d6-23a3b0549a2d"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "brokerId": "f0316c59-7912-40f8-99e1-8badae49b8b9",
+    "name": "Real",
+    "currency": "USD",
+    "id": "26a9c24e-a2cc-420e-a528-baf5673d2070"
+  }
+]

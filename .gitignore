@@ -1,0 +1,23 @@
+# Ignore everything
+*
+
+# Unignore directories and their contents
+!/data/
+!/data/**
+!/prisma/
+!/prisma/**
+!/scripts/
+!/scripts/**
+!/src/
+!/src/**
+!/tests/
+!/tests/**
+
+# Unignore specific files
+!/.env.example
+!/jest.config.js
+!/package-lock.json
+!/package.json
+!/test_public_api.js
+!/tsconfig.json
+!/.gitignore

@@ -1,0 +1,122 @@
+[
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Breakout",
+    "id": "cbc3cfbe-2039-43ad-914d-e72c7ff4c7a0"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Trend Following",
+    "id": "76f6775d-db66-4323-841c-b9ef0fad7f8a"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Mean Reversion",
+    "id": "aa7fa4e5-a183-42cb-a5d9-5515af5d4c2c"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Scalping",
+    "id": "81dca3ae-d193-46dc-b928-91303d7a94d4"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Swing",
+    "id": "b2110475-a460-4caa-ae5e-23a86d1c7df3"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "News Trading",
+    "id": "67654061-bbbf-4283-b013-1ca4ab2785a3"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Momentum",
+    "id": "8b62ffbe-faf7-45a4-951d-20f7f9c224c5"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Reversal",
+    "id": "7ed1b47e-7e4e-4ca3-b39b-f0daf32b5641"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Pullback",
+    "id": "d164a1b5-f879-40d0-a531-c43021c5811a"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Range Trading",
+    "id": "61dadb9f-d461-40fe-9600-6616fa39f1e8"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "VWAP",
+    "id": "bf20b253-3fa3-4faa-9557-201d60483554"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "EMA Cross",
+    "id": "53d673bb-9dc6-4119-8a12-514196bc711d"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "SMA Cross",
+    "id": "287a3556-f7f4-4e5a-9712-7b96117dcba9"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Support/Resistance",
+    "id": "c274547f-f623-4665-b163-02200067b25e"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Fibonacci",
+    "id": "992e03df-a0b6-4f0b-95d5-1f58fdc782f9"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Order Block",
+    "id": "fa19b6b6-d155-4e7d-a5f7-aa3c7b2dcbdf"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Liquidity Grab",
+    "id": "869c40ea-81a8-422c-8d6c-1e77cc313808"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Supply/Demand",
+    "id": "06a6c055-aff3-4bc2-9512-3955731b6767"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Smart Money",
+    "id": "a7a55e5b-6569-49b3-aa80-cdc51ce611d9"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Volatility Breakout",
+    "id": "d97cbb44-0051-4c3c-931b-2a0bdf1de2a1"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Opening Range Breakout",
+    "id": "6823c775-5a47-4d70-a72f-c3f94bd18ffc"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Inside Bar",
+    "id": "525b955b-a827-4cfe-a9a4-3811bb9f430d"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "ICT",
+    "id": "b92d06ed-af1f-4bd6-970d-4ba872ea9010"
+  },
+  {
+    "userId": "1ee6c6dc-e748-4c6a-9208-e2954abe15b3",
+    "name": "Price Action",
+    "id": "7daa7765-d6e0-4ebf-b328-3ac2d61c0feb"
+  }
+]
