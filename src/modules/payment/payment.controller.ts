@@ -1,10 +1,33 @@
 import { Router } from 'express'
-import fetch from 'node-fetch'
 import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
+import { prisma } from '../../lib/prisma'
 
 const router = Router()
 
 function num(v: any): number { const n = Number(v); return isNaN(n) ? 0 : n }
+function amountByPlan(p: string): number {
+  if (p === 'monthly') return 2
+  if (p === 'quarterly') return 5
+  if (p === '6months') return 9
+  if (p === 'yearly') return 18
+  if (p === 'pro') return 80
+  if (p === 'creator') return 200
+  return 2
+}
+
+async function getRequester(req: any): Promise<{ id: string; roles: string[] } | null> {
+  try {
+    const auth = req.headers?.authorization || ''
+    const token = auth.replace(/^Bearer\s+/i, '')
+    if (!token) return null
+    const secret = process.env.JWT_SECRET || 'dev-secret'
+    const payload = jwt.verify(token, secret) as any
+    const user = await prisma.user.findUnique({ where: { id: payload?.uid } })
+    if (!user) return null
+    return { id: user.id, roles: user.roles || ['User'] }
+  } catch { return null }
+}
 
 router.post('/paypal/create', async (req, res) => {
   try {
@@ -39,40 +62,155 @@ router.post('/paypal/create', async (req, res) => {
   }
 })
 
-router.post('/midtrans/create', async (req, res) => {
+router.post('/redeem/validate', async (req, res) => {
   try {
-    const serverKey = process.env.MIDTRANS_SERVER_KEY || ''
-    const snapBase = process.env.MIDTRANS_BASE_URL || 'https://app.sandbox.midtrans.com'
-    const { order_id, amount = 75000, customer = {}, items = [] } = req.body || {}
-    const auth = Buffer.from(`${serverKey}:`).toString('base64')
-    const body = {
-      transaction_details: { order_id: order_id || `order-${Date.now()}`, gross_amount: num(amount) },
-      customer_details: customer,
-      item_details: Array.isArray(items) ? items : []
+    const requester = await getRequester(req)
+    if (!requester) return res.status(401).json({ error: 'login_required' })
+    
+    const { plan, code } = req.body || {}
+    const base = amountByPlan(String(plan || ''))
+    const key = String(code || '').trim().toUpperCase()
+    
+    // Check DB first
+    const fromDb = await prisma.coupon.findUnique({ where: { code: key } })
+    
+    // Fallback to Env/Hardcoded if not in DB
+    let rule: { percent?: number; amountOff?: number } | null = null
+    
+    if (fromDb) {
+      if (new Date(fromDb.expiresAt).getTime() <= Date.now()) {
+        // Expired in DB but might check fallback? No, DB takes precedence if exists
+        // Actually if it exists in DB it overrides env
+      } else {
+        rule = { percent: fromDb.percent || undefined, amountOff: fromDb.amountOff || undefined }
+      }
+    } else {
+      // Check env
+      const cfg = process.env.REDEEM_CODES || ''
+      let map: Record<string, { percent?: number; amountOff?: number }> = {}
+      try { if (cfg) map = JSON.parse(cfg) } catch {}
+      if (Object.keys(map).length === 0) {
+        map = {
+          'WELCOME10': { percent: 10 },
+          'SAVE5': { amountOff: 5 }
+        }
+      }
+      rule = map[key]
     }
-    const resp = await fetch(`${snapBase}/snap/v1/transactions`, {
-      method: 'POST',
-      headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-    const json: any = await resp.json()
-    if (!resp.ok) return res.status(500).json({ error: 'midtrans_create_failed', details: json })
-    res.json({ token: json.token, redirect_url: json.redirect_url })
+
+    if (!rule) return res.status(400).json({ error: 'invalid_code' })
+    
+    // Usage Check
+    if (fromDb) {
+       // Check usage in DB
+       const usage = await prisma.couponUsage.findFirst({
+         where: {
+           code: key,
+           userId: requester.id,
+           expiresAt: { gt: new Date() } // Usage valid if expiresAt > now
+         }
+       })
+       if (usage) return res.status(400).json({ error: 'already_used' })
+       
+       // Record usage logic moved to payment success
+    }
+
+    const pct = Number(rule.percent || 0)
+    const off = Number(rule.amountOff || 0)
+    let final = base
+    if (pct) final = Math.max(0, final * (1 - pct / 100))
+    if (off) final = Math.max(0, final - off)
+    final = Math.round(final * 100) / 100
+    
+    res.json({ ok: true, percent: pct, amountOff: off, final })
   } catch (e) {
-    res.status(500).json({ error: 'midtrans_error' })
+    console.error(e)
+    res.status(500).json({ error: 'redeem_validate_error' })
   }
 })
 
-router.post('/midtrans/webhook', async (req, res) => {
+router.get('/coupons', async (req, res) => {
   try {
-    const serverKey = process.env.MIDTRANS_SERVER_KEY || ''
-    const { order_id, status_code, gross_amount, signature_key } = req.body || {}
-    const raw = String(order_id) + String(status_code) + String(gross_amount) + String(serverKey)
-    const calc = crypto.createHash('sha512').update(raw).digest('hex')
-    if (String(calc) !== String(signature_key)) return res.status(403).json({ error: 'invalid_signature' })
+    const requester = await getRequester(req)
+    const allowed = requester && requester.roles.some(r => ['Developer', 'Creator'].includes(r))
+    if (!allowed) return res.status(403).json({ error: 'forbidden_user' })
+    
+    const list = await prisma.coupon.findMany({
+      where: { expiresAt: { gt: new Date() } },
+      include: { _count: { select: { usages: true } } },
+      orderBy: { createdAt: 'desc' }
+    })
+    res.json(list)
+  } catch {
+    res.status(500).json({ error: 'coupons_list_error' })
+  }
+})
+
+router.post('/coupons', async (req, res) => {
+  try {
+    const requester = await getRequester(req)
+    const allowed = requester && requester.roles.some(r => ['Developer', 'Creator'].includes(r))
+    if (!allowed || !requester) return res.status(403).json({ error: 'forbidden_user' })
+    
+    const { code, percent, amountOff, durationDays } = req.body || {}
+    const c = String(code || '').trim().toUpperCase()
+    const p = percent !== undefined ? Number(percent) : undefined
+    const a = amountOff !== undefined ? Number(amountOff) : undefined
+    const d = Number(durationDays || 0)
+    
+    if (!c) return res.status(400).json({ error: 'invalid_code' })
+    if (p !== undefined) {
+      if (isNaN(p) || p < 1 || p > 20) return res.status(400).json({ error: 'invalid_percent' })
+    }
+    if (a !== undefined) {
+      if (isNaN(a) || a <= 0) return res.status(400).json({ error: 'invalid_amount_off' })
+    }
+    if (isNaN(d) || d < 1 || d > 14) return res.status(400).json({ error: 'invalid_duration' })
+    
+    const expiresAt = new Date(Date.now() + d * 24 * 60 * 60 * 1000)
+    
+    // Purge existing coupon if exists (to reset usage logic as requested)
+    // Deleting coupon will cascade delete usages due to schema relation
+    try {
+      await prisma.coupon.delete({ where: { code: c } })
+    } catch {} // Ignore if not exists
+
+    await prisma.coupon.create({
+      data: {
+        code: c,
+        percent: p,
+        amountOff: a,
+        duration: d,
+        expiresAt: expiresAt
+      }
+    })
+    
     res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ error: 'midtrans_webhook_error' })
+    console.error(e)
+    res.status(500).json({ error: 'coupon_create_error' })
+  }
+})
+
+router.delete('/coupons/:code', async (req, res) => {
+  try {
+    const requester = await getRequester(req)
+    const allowed = requester && requester.roles.some(r => ['Developer', 'Creator'].includes(r))
+    if (!allowed) return res.status(403).json({ error: 'forbidden_user' })
+    
+    const c = String(req.params.code || '').trim().toUpperCase()
+    if (!c) return res.status(400).json({ error: 'invalid_code' })
+    
+    // Deleting coupon will cascade delete usages
+    await prisma.coupon.delete({ where: { code: c } })
+    
+    res.json({ ok: true })
+  } catch (e) {
+    // If record not found, prisma throws. We can treat as success or 404.
+    // Treating as success (idempotent) or error is fine. 
+    // Usually user sees list, clicks delete, so it should exist.
+    console.error(e)
+    res.status(500).json({ error: 'coupon_delete_error' })
   }
 })
 

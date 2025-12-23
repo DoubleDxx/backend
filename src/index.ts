@@ -1,8 +1,29 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import fs from 'fs'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+
+// Manual .env loader since dotenv might be missing
+try {
+  const envPath = path.join(__dirname, '../.env')
+  if (fs.existsSync(envPath)) {
+    const envConfig = fs.readFileSync(envPath, 'utf8')
+    envConfig.split('\n').forEach(line => {
+      const parts = line.split('=')
+      if (parts.length >= 2 && !line.trim().startsWith('#')) {
+        const key = parts[0].trim()
+        const val = parts.slice(1).join('=').trim().replace(/^["'](.*)["']$/, '$1')
+        if (!process.env[key]) {
+           process.env[key] = val
+        }
+      }
+    })
+    console.log('.env loaded manually')
+  }
+} catch (e) { console.error('Error loading .env', e) }
+
 import timezone from 'dayjs/plugin/timezone'
 import { json } from 'express'
 import { calcRealizedPnl, calcAvgExitPrice, calcPips, calcRR } from './modules/trades/trade.calc'

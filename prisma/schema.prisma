@@ -25,6 +25,8 @@ model User {
   trades       Trade[]
   walletTxs    WalletTx[]
   notes        Note[]
+  couponUsages CouponUsage[]
+  paymentLogs  PaymentLog[]
 }
 
 model Broker {
@@ -144,4 +146,39 @@ model InstrumentMeta {
   symbol     String @unique
   pipSize    Float
   pointValue Float?
+}
+
+model Coupon {
+  code        String        @id
+  percent     Float?
+  amountOff   Float?
+  duration    Int?
+  expiresAt   DateTime
+  createdAt   DateTime      @default(now())
+  
+  usages      CouponUsage[]
+}
+
+model CouponUsage {
+  id        String   @id @default(uuid())
+  code      String
+  userId    String
+  usedAt    DateTime @default(now())
+  expiresAt DateTime
+
+  coupon    Coupon   @relation(fields: [code], references: [code], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PaymentLog {
+  id          String   @id @default(uuid())
+  orderId     String   @unique
+  userId      String
+  amount      Float
+  status      String   @default("PENDING")
+  couponCode  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
