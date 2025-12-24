@@ -35,7 +35,7 @@ import walletRouter from './modules/wallet/wallet.controller'
 import notesRouter from './modules/notes/notes.controller'
 import publicRouter from './modules/public/public.controller'
 import adminRouter from './modules/admin/admin.controller'
-import paymentRouter from './modules/payment/payment.controller'
+import paymentRouter, { xenditWebhook } from './modules/payment/payment.controller'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -68,6 +68,7 @@ app.use('/api/notes', notesRouter)
 app.use('/api/public', publicRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/payment', paymentRouter)
+app.post('/api/webhook/xendit', xenditWebhook)
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {

@@ -1,0 +1,50 @@
+[
+  {
+    "plan": "monthly",
+    "currentUsd": 2,
+    "originalUsd": 2,
+    "currentIdr": 30000,
+    "originalIdr": 29996,
+    "id": "eaf806a7-d105-4081-80ea-b3cd33cb5eed"
+  },
+  {
+    "plan": "quarterly",
+    "currentUsd": 5,
+    "originalUsd": 5,
+    "currentIdr": 75000,
+    "originalIdr": 75000,
+    "id": "73d5b970-c818-4efb-a940-0fcc2c29eb46"
+  },
+  {
+    "plan": "6months",
+    "currentUsd": 9,
+    "originalUsd": 9,
+    "currentIdr": 140000,
+    "originalIdr": 140000,
+    "id": "de49e0e8-0314-4243-a984-bb657db162fb"
+  },
+  {
+    "plan": "yearly",
+    "currentUsd": 18,
+    "originalUsd": 18,
+    "currentIdr": 270000,
+    "originalIdr": 270000,
+    "id": "eb5542c1-e26c-4d64-aeff-814adcc63709"
+  },
+  {
+    "plan": "pro",
+    "currentUsd": 80,
+    "originalUsd": 80,
+    "currentIdr": 1200000,
+    "originalIdr": 1200000,
+    "id": "b0c6f8d4-7a54-4d1c-aed6-e4c3b49505bd"
+  },
+  {
+    "plan": "creator",
+    "currentUsd": 200,
+    "originalUsd": 200,
+    "currentIdr": 3000000,
+    "originalIdr": 3000000,
+    "id": "138a4f1e-0881-40d6-a05b-51cf749eb2d4"
+  }
+]
