@@ -1,8 +1,11 @@
 import { Router } from 'express'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
+import dayjs from 'dayjs'
 import Xendit from 'xendit-node'
+const midtransClient = require('midtrans-client')
 import { prisma } from '../../lib/prisma'
+import { User, Prisma } from '@prisma/client'
 
 const router = Router()
 
@@ -16,6 +19,22 @@ function amountByPlan(p: string): number {
   if (p === 'creator') return 200
   return 2
 }
+
+function calculateNewExpiry(currentExpiry: Date | null | undefined, plan: string): Date | null {
+  const p = String(plan || '').toLowerCase()
+  if (p === 'creator' || p === 'pro' || p === 'lifetime') return null // Lifetime
+
+  const now = dayjs()
+  let base = (currentExpiry && dayjs(currentExpiry).isAfter(now)) ? dayjs(currentExpiry) : now
+
+  if (p === 'monthly') return base.add(1, 'month').toDate()
+  if (p === 'quarterly') return base.add(3, 'month').toDate()
+  if (p === '6months') return base.add(6, 'month').toDate()
+  if (p === 'yearly') return base.add(1, 'year').toDate()
+  
+  return base.add(1, 'month').toDate() // Default
+}
+
 
 function amountByPlanIDR(p: string): number {
   if (p === 'monthly') return 30000
@@ -444,7 +463,7 @@ export async function xenditWebhook(req: any, res: any) {
       let userId: string | undefined = undefined
       if (payerEmail) {
         try {
-          const u = await prisma.user.findUnique({ where: { email: payerEmail } })
+          const u = await prisma.user.findUnique({ where: { email: payerEmail } }) as User | null
           if (u) userId = u.id
         } catch {}
       }
@@ -474,6 +493,9 @@ export async function xenditWebhook(req: any, res: any) {
                         const m = String(finalOrderId).match(/^invoice-([a-z0-9]+)-/)
                         if (m && m[1]) p = m[1]
                       }
+
+                      const newExpiry = calculateNewExpiry((u as any).subscriptionExpiresAt, p)
+
                       if (p === 'creator') {
                         roles.add('Creator')
                         if (roles.has('Whitelist')) roles.delete('Whitelist')
@@ -481,7 +503,7 @@ export async function xenditWebhook(req: any, res: any) {
                         roles.add('Trader')
                         if (roles.has('Whitelist')) roles.delete('Whitelist')
                       }
-                      await prisma.user.update({ where: { id: u.id }, data: { roles: Array.from(roles) } })
+                      await prisma.user.update({ where: { id: u.id }, data: { roles: Array.from(roles), subscriptionExpiresAt: newExpiry } as Prisma.UserUpdateInput })
                     }
                   } catch {}
                 } else {
@@ -500,7 +522,7 @@ export async function xenditWebhook(req: any, res: any) {
             const created = await prisma.paymentLog.create({ data: { orderId: finalOrderId, userId, amount: num(amount) || 0, status: initialStatus, createdAt: new Date() } })
             if (isPaid) {
               try {
-                const u = await prisma.user.findUnique({ where: { id: userId } })
+                const u = await prisma.user.findUnique({ where: { id: userId } }) as User | null
                 if (u) {
                   const roles = new Set(u.roles || ['User'])
                   let p = String((created as any).plan || '').toLowerCase()
@@ -508,6 +530,9 @@ export async function xenditWebhook(req: any, res: any) {
                     const m = String(finalOrderId).match(/^invoice-([a-z0-9]+)-/)
                     if (m && m[1]) p = m[1]
                   }
+
+                  const newExpiry = calculateNewExpiry((u as any).subscriptionExpiresAt, p)
+
                   if (p === 'creator') {
                     roles.add('Creator')
                     if (roles.has('Whitelist')) roles.delete('Whitelist')
@@ -515,7 +540,7 @@ export async function xenditWebhook(req: any, res: any) {
                     roles.add('Trader')
                     if (roles.has('Whitelist')) roles.delete('Whitelist')
                   }
-                  await prisma.user.update({ where: { id: u.id }, data: { roles: Array.from(roles) } })
+                  await prisma.user.update({ where: { id: u.id }, data: { roles: Array.from(roles), subscriptionExpiresAt: newExpiry } as Prisma.UserUpdateInput })
                 }
               } catch {}
             }
@@ -534,7 +559,7 @@ export async function xenditWebhook(req: any, res: any) {
                 if (isPaid) {
                   await prisma.paymentLog.update({ where: { orderId: m.orderId }, data: { status: 'PAID' } })
                   try {
-                    const u = await prisma.user.findUnique({ where: { id: m.userId } })
+                    const u = await prisma.user.findUnique({ where: { id: m.userId } }) as User | null
                     if (u) {
                       const roles = new Set(u.roles || ['User'])
                       let p = String((m as any).plan || '').toLowerCase()
@@ -551,6 +576,9 @@ export async function xenditWebhook(req: any, res: any) {
                         }
                         p = bestPlan
                       }
+
+                      const newExpiry = calculateNewExpiry((u as any).subscriptionExpiresAt, p)
+
                       if (p === 'creator') {
                         roles.add('Creator')
                         if (roles.has('Whitelist')) roles.delete('Whitelist')
@@ -558,7 +586,7 @@ export async function xenditWebhook(req: any, res: any) {
                         roles.add('Trader')
                         if (roles.has('Whitelist')) roles.delete('Whitelist')
                       }
-                      await prisma.user.update({ where: { id: u.id }, data: { roles: Array.from(roles) } })
+                      await prisma.user.update({ where: { id: u.id }, data: { roles: Array.from(roles), subscriptionExpiresAt: newExpiry } as Prisma.UserUpdateInput })
                     }
                   } catch {}
                 } else if (isExpired) {
@@ -612,5 +640,260 @@ export async function xenditWebhook(req: any, res: any) {
 }
 
 router.post('/xendit/webhook', xenditWebhook)
+
+router.post('/midtrans/create', async (req, res) => {
+  try {
+    const { plan, email, couponCode } = req.body
+    if (!plan || !email) return res.status(400).json({ error: 'missing_fields' })
+
+    // Calculate amount (IDR)
+    let amount = amountByPlanIDR(plan)
+    const priceRow = await getPricing(String(plan))
+    if (priceRow && num(priceRow.currentIdr) > 0) amount = num(priceRow.currentIdr)
+    
+    const key = String(couponCode || '').trim().toUpperCase()
+    if (key) {
+      try {
+        const fromDb = await prisma.coupon.findUnique({ where: { code: key } })
+        let rule: { percent?: number; amountOff?: number } | null = null
+        if (fromDb && new Date(fromDb.expiresAt).getTime() > Date.now()) {
+          rule = { percent: fromDb.percent || undefined, amountOff: fromDb.amountOff || undefined }
+        }
+        if (rule) {
+          const pct = Number(rule.percent || 0)
+          const offUsd = Number(rule.amountOff || 0)
+          if (pct) amount = Math.max(0, amount * (1 - pct / 100))
+          if (offUsd) amount = Math.max(0, amount - offUsd * 15000)
+        }
+      } catch {}
+    }
+    
+    // Midtrans minimum 100 or something, let's say 10000
+    if (amount < 1000) return res.status(400).json({ error: 'invalid_amount' })
+    
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || ''
+    const isProduction = process.env.MIDTRANS_IS_PRODUCTION === 'true'
+    
+    if (!serverKey) {
+        console.error("MIDTRANS SERVER KEY MISSING")
+        return res.status(500).json({ error: 'midtrans_config_error' })
+    }
+
+    const snap = new midtransClient.Snap({
+        isProduction,
+        serverKey
+    })
+
+    const safePlan = String(plan || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '')
+    const orderId = `midtrans-${safePlan}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    
+    const parameter = {
+        transaction_details: {
+            order_id: orderId,
+            gross_amount: amount
+        },
+        credit_card: {
+            secure: true
+        },
+        customer_details: {
+            email: email
+        }
+    }
+
+    const transaction = await snap.createTransaction(parameter)
+    
+    // Create pending log
+    try {
+      const u = await prisma.user.findUnique({ where: { email } })
+      if (u) {
+          await (prisma as any).paymentLog.create({ 
+              data: { 
+                  orderId, 
+                  userId: u.id, 
+                  amount, 
+                  status: 'PENDING', 
+                  couponCode, 
+                  plan, 
+                  createdAt: new Date() 
+              } 
+          })
+      }
+    } catch (e) { console.error("Failed to create payment log", e) }
+
+    res.json({ 
+        redirect_url: transaction.redirect_url, 
+        token: transaction.token,
+        clientKey: process.env.MIDTRANS_CLIENT_KEY || '',
+        isProduction
+    })
+  } catch (e: any) {
+    console.error("MIDTRANS CREATE ERROR:", e)
+    res.status(500).json({ error: e.message || 'midtrans_error' })
+  }
+})
+
+router.post('/midtrans/webhook', async (req, res) => {
+    try {
+        const notificationJson = req.body
+        const serverKey = process.env.MIDTRANS_SERVER_KEY || ''
+        
+        const apiClient = new midtransClient.Snap({
+            isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
+            serverKey: serverKey
+        })
+
+        const statusResponse = await apiClient.transaction.notification(notificationJson)
+        await processMidtransStatus(statusResponse)
+
+        res.status(200).json({ ok: true })
+    } catch (e: any) {
+        console.error("MIDTRANS WEBHOOK ERROR:", e)
+        res.status(500).json({ error: e.message || 'midtrans_webhook_error' })
+    }
+})
+
+router.get('/midtrans/check/:orderId', async (req, res) => {
+    try {
+        const { orderId } = req.params
+        const serverKey = process.env.MIDTRANS_SERVER_KEY || ''
+        const apiClient = new midtransClient.Snap({
+            isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
+            serverKey: serverKey
+        })
+        
+        // Get status from Midtrans
+        const statusResponse = await apiClient.transaction.status(orderId)
+        // Update DB
+        await processMidtransStatus(statusResponse)
+        
+        const order = await prisma.paymentLog.findUnique({ where: { orderId } })
+        res.json({ ok: true, status: order?.status, midtransStatus: statusResponse.transaction_status })
+    } catch (e: any) {
+        console.error("MIDTRANS CHECK ERROR:", e)
+        res.status(500).json({ error: e.message })
+    }
+})
+
+// Helper function to process status
+export async function processMidtransStatus(statusResponse: any) {
+    const orderId = statusResponse.order_id
+    const transactionStatus = statusResponse.transaction_status
+    const fraudStatus = statusResponse.fraud_status
+    
+    console.log(`Midtrans notification: ${orderId} ${transactionStatus} ${fraudStatus}`)
+
+    let newStatus = 'PENDING'
+    if (transactionStatus == 'capture') {
+        if (fraudStatus == 'challenge') {
+            newStatus = 'CHALLENGE'
+        } else if (fraudStatus == 'accept') {
+            newStatus = 'PAID'
+        }
+    } else if (transactionStatus == 'settlement') {
+        newStatus = 'PAID'
+    } else if (transactionStatus == 'cancel' || transactionStatus == 'deny' || transactionStatus == 'expire') {
+        newStatus = 'FAILED'
+    } else if (transactionStatus == 'pending') {
+        newStatus = 'PENDING'
+    }
+    
+    // Update database using transaction to ensure consistency
+    await prisma.$transaction(async (tx) => {
+        const order = await tx.paymentLog.findUnique({ where: { orderId } })
+        if (!order) return
+
+        // Check if we need to process payment (either new PAID status OR recovery for PAID status with missing role)
+        const isNewPaid = newStatus === 'PAID' && order.status !== 'PAID'
+        const isRecovery = newStatus === 'PAID' && order.status === 'PAID'
+
+        if (isNewPaid || isRecovery) {
+            // 1. Get User
+            const u = await tx.user.findUnique({ where: { id: order.userId } }) as User | null
+            
+            if (u) {
+                // Check if recovery is needed (skip if user already has role)
+                let needsUpdate = isNewPaid
+                if (isRecovery) {
+                    const hasRole = u.roles.includes('Trader') || u.roles.includes('Creator')
+                    if (!hasRole) needsUpdate = true
+                }
+
+                if (needsUpdate) {
+                    // Update status if needed
+                    if (order.status !== 'PAID') {
+                        await tx.paymentLog.update({ where: { orderId }, data: { status: 'PAID' } })
+                    }
+
+                    // Grant roles
+                    const roles = new Set(u.roles || ['User'])
+                    let p = String((order as any).plan || '').toLowerCase()
+                    
+                    console.log(`[Midtrans] Granting role for order ${orderId}, user ${u.id}, plan ${p}`)
+
+                    // Logic to extract plan from orderId if missing in DB
+                    if (!p) {
+                         const m = String(orderId).match(/^invoice-([a-z0-9]+)-/)
+                         if (m && m[1]) p = m[1]
+                         console.log(`[Midtrans] Plan extracted from orderId: ${p}`)
+                    }
+
+                    const newExpiry = calculateNewExpiry((u as any).subscriptionExpiresAt, p)
+
+                    if (p === 'creator') {
+                        roles.add('Creator')
+                        if (roles.has('Whitelist')) roles.delete('Whitelist')
+                    } else {
+                        roles.add('Trader')
+                        if (roles.has('Whitelist')) roles.delete('Whitelist')
+                    }
+                    
+                    await tx.user.update({ 
+                        where: { id: u.id }, 
+                        data: { roles: Array.from(roles), subscriptionExpiresAt: newExpiry } as Prisma.UserUpdateInput
+                    })
+                    console.log(`[Midtrans] Role granted to user ${u.email} for plan ${p}. Roles: ${Array.from(roles)}`)
+                }
+            }
+        } else if (newStatus !== 'PENDING' && newStatus !== order.status) {
+            // Update other statuses (FAILED, EXPIRED, etc)
+            await tx.paymentLog.update({ where: { orderId }, data: { status: newStatus } })
+        }
+    })
+
+    // Discord Webhook
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL || ''
+    if (webhookUrl) {
+        try {
+             const content = `Midtrans Update: ${orderId} - ${newStatus} (${transactionStatus})`
+             await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+             })
+        } catch {}
+    }
+    
+    return { status: newStatus }
+}
+
+router.get('/midtrans/status/:orderId', async (req, res) => {
+    try {
+        const { orderId } = req.params
+        const serverKey = process.env.MIDTRANS_SERVER_KEY || ''
+        const apiClient = new midtransClient.Snap({
+            isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
+            serverKey: serverKey
+        })
+        
+        // Check status from Midtrans API
+        const statusResponse = await apiClient.transaction.status(orderId)
+        const result = await processMidtransStatus(statusResponse)
+        
+        res.json(result)
+    } catch (e: any) {
+        console.error("MIDTRANS STATUS CHECK ERROR:", e)
+        res.status(500).json({ error: e.message })
+    }
+})
 
 export default router
